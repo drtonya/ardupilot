@@ -300,11 +300,14 @@ class MAVProxyLaunch:
         print(f"console:          {console}")
         print(f"map:              {map}")
 
+        sitl_launch = SITLLaunch(context)
+        instance_out = int(sitl_launch.instance_out)
+
         cmd = [
             f"{command} ",
             f"--out {out} ",
             "--out ",
-            "127.0.0.1:14551 ",
+            f"127.0.0.1:14550 ",
             f"--master {master} ",
             f"--sitl {sitl} ",
             "--non-interactive ",
@@ -321,7 +324,8 @@ class MAVProxyLaunch:
             cmd=cmd,
             shell=True,
             output="both",
-            respawn=False,
+            respawn=True, #set to True to allow MAVProxy to restart if it crashes
+            respawn_delay=2.0,  # Delay before respawning
         )
         return mavproxy_process
 
@@ -389,6 +393,10 @@ class SITLLaunch:
     # Labels for the optional uart launch arguments.
     UART_LABELS = ["A", "B", "C", "D", "E", "F", "H", "I", "J"]
     MAX_SERIAL_PORTS = 10
+    def __init__(self, context: LaunchContext):
+        """Initialize SITLLaunch."""
+        # Instance variable to store the instance number.
+        self.instance_out = LaunchConfiguration("instance").perform(context)
 
     @staticmethod
     def generate_action(context: LaunchContext, *args, **kwargs) -> ExecuteProcess:
